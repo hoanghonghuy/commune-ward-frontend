@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
+import { useDebounce } from "@/hooks/useDebounce";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -10,11 +11,13 @@ import {
 } from "@/components/ui/select";
 import { Search, RotateCcw } from "lucide-react";
 
-export function SearchBar({ onSearch, onReset, isLoading }) {
-  const [query, setQuery] = useState("");
-  const [selectedProvince, setSelectedProvince] = useState("");
+export function SearchBar({ onSearch, onReset, isLoading, initialParams }) {
+  const [query, setQuery] = useState(initialParams.q || "");
+  const [selectedProvince, setSelectedProvince] = useState(initialParams.province || "");
   const [provinces, setProvinces] = useState([]);
-  const isInitialMount = useRef(true);
+
+  const debouncedQuery = useDebounce(query, 500);
+  const debouncedProvince = useDebounce(selectedProvince, 500);
 
   useEffect(() => {
     const fetchProvinces = async () => {
@@ -33,33 +36,16 @@ export function SearchBar({ onSearch, onReset, isLoading }) {
   }, []);
 
   useEffect(() => {
-    // Kiểm tra nếu là lần render đầu tiên
-    if (isInitialMount.current) {
-      isInitialMount.current = false; // Đánh dấu không còn là lần đầu
-      return; // và thoát, không làm gì cả
+    // Chỉ gọi onSearch nếu các giá trị đã thay đổi so với giá trị ban đầu được lưu
+    if (debouncedQuery !== initialParams.q || debouncedProvince !== initialParams.province) {
+      onSearch({ q: debouncedQuery, province: debouncedProvince });
     }
-    const timer = setTimeout(() => {
-      onSearch({ q: query, province: selectedProvince });
-    }, 500);
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [query, selectedProvince, onSearch]);
-  
-  const handleSearchClick = () => {
-    onSearch({ q: query, province: selectedProvince });
-  };
+  }, [debouncedQuery, debouncedProvince, onSearch, initialParams]);
 
   const handleResetClick = () => {
     setQuery("");
     setSelectedProvince("");
     onReset();
-  };
-  
-  const handleKeyDown = (event) => {
-    if (event.key === 'Enter') {
-      handleSearchClick();
-    }
   };
 
   return (
@@ -88,13 +74,8 @@ export function SearchBar({ onSearch, onReset, isLoading }) {
           className="pl-10"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          onKeyDown={handleKeyDown}
         />
       </div>
-      <Button onClick={handleSearchClick} disabled={isLoading} className="w-full sm:w-auto">
-        <Search className="mr-2 h-4 w-4" />
-        {isLoading ? "Đang tìm..." : "Tìm kiếm"}
-      </Button>
       <Button variant="outline" onClick={handleResetClick} disabled={isLoading} className="w-full sm:w-auto">
         <RotateCcw className="mr-2 h-4 w-4" />
         Đặt lại

@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { ResultCard } from "./ResultCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
@@ -13,6 +14,16 @@ const SkeletonCard = () => (
     </CardContent>
   </Card>
 );
+
+const listVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+};
 
 export function ResultsList({ isLoading, results, query }) {
   if (isLoading) {
@@ -34,10 +45,15 @@ export function ResultsList({ isLoading, results, query }) {
   }
 
   return (
-    <div className="space-y-4">
+    <motion.div
+      className="space-y-4"
+      variants={listVariants}
+      initial="hidden"
+      animate="visible"
+    >
       {results.map((item, index) => (
         <ResultCard key={index} data={item} query={query} />
       ))}
-    </div>
+    </motion.div>
   );
 }
