@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { SearchBar } from "./components/SearchBar";
 import { ResultsList } from "./components/ResultsList";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,7 +12,7 @@ function App() {
   const [searchQuery, setSearchQuery] = useState("");
   const [hasSearched, setHasSearched] = useState(false);
 
-  const handleSearch = async ({ q, province }) => {
+  const handleSearch = useCallback(async ({ q, province }) => {
     setIsLoading(true);
     setHasSearched(true);
     setSearchQuery(q);
@@ -37,13 +37,13 @@ function App() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
-  const handleReset = () => {
+  const handleReset = useCallback(() => {
     setResults([]);
     setSearchQuery("");
     setHasSearched(false);
-  };
+  }, []);
 
   return (
     <>

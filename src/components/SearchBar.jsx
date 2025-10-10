@@ -31,6 +31,21 @@ export function SearchBar({ onSearch, onReset, isLoading }) {
     fetchProvinces();
   }, []);
 
+  useEffect(() => {
+    // Thiết lập một timer
+    const timer = setTimeout(() => {
+      // Sau 500ms, gọi hàm onSearch được truyền từ App.jsx
+      onSearch({ q: query, province: selectedProvince });
+    }, 500); // Độ trễ là 500ms
+
+    // Rất quan trọng: hàm cleanup của useEffect
+    // Hàm này sẽ được gọi mỗi khi query hoặc selectedProvince thay đổi
+    // Nó sẽ hủy bỏ timer đã thiết lập ở trên
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [query, selectedProvince, onSearch]); // Effect này sẽ chạy lại mỗi khi các giá trị này thay đổi
+  
   const handleSearchClick = () => {
     onSearch({ q: query, province: selectedProvince });
   };
