@@ -4,6 +4,7 @@ import { ResultsList } from "./components/ResultsList";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Toaster, toast } from "sonner";
 import { ThemeToggle } from "./components/ThemeToggle";
+import { InitialState } from "./components/InitialState";
 
 function App() {
   const [results, setResults] = useState([]);
@@ -66,20 +67,25 @@ function App() {
           </Card>
 
           <main>
-            {hasSearched && !isLoading && (
-              <div className="mb-4 text-sm text-slate-700">
-                <p>
-                  Hiển thị <strong>{results.length}</strong> kết quả.
-                </p>
-              </div>
-            )}
-
-            {hasSearched && (
-              <ResultsList
-                isLoading={isLoading}
-                results={results}
-                query={searchQuery}
-              />
+            {hasSearched ? (
+              // Nếu đã tìm kiếm, hiển thị kết quả
+              <>
+                {!isLoading && (
+                  <div className="mb-4 text-sm text-slate-700 dark:text-slate-400">
+                    <p>
+                      Hiển thị <strong>{results.length}</strong> kết quả.
+                    </p>
+                  </div>
+                )}
+                <ResultsList
+                  isLoading={isLoading}
+                  results={results}
+                  query={searchQuery}
+                />
+              </>
+            ) : (
+              // Nếu chưa tìm kiếm, hiển thị trạng thái ban đầu
+              <InitialState />
             )}
           </main>
         </div>
