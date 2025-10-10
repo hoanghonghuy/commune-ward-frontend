@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -14,6 +14,7 @@ export function SearchBar({ onSearch, onReset, isLoading }) {
   const [query, setQuery] = useState("");
   const [selectedProvince, setSelectedProvince] = useState("");
   const [provinces, setProvinces] = useState([]);
+  const isInitialMount = useRef(true);
 
   useEffect(() => {
     const fetchProvinces = async () => {
@@ -32,19 +33,18 @@ export function SearchBar({ onSearch, onReset, isLoading }) {
   }, []);
 
   useEffect(() => {
-    // Thiết lập một timer
+    // Kiểm tra nếu là lần render đầu tiên
+    if (isInitialMount.current) {
+      isInitialMount.current = false; // Đánh dấu không còn là lần đầu
+      return; // và thoát, không làm gì cả
+    }
     const timer = setTimeout(() => {
-      // Sau 500ms, gọi hàm onSearch được truyền từ App.jsx
       onSearch({ q: query, province: selectedProvince });
-    }, 500); // Độ trễ là 500ms
-
-    // Rất quan trọng: hàm cleanup của useEffect
-    // Hàm này sẽ được gọi mỗi khi query hoặc selectedProvince thay đổi
-    // Nó sẽ hủy bỏ timer đã thiết lập ở trên
+    }, 500);
     return () => {
       clearTimeout(timer);
     };
-  }, [query, selectedProvince, onSearch]); // Effect này sẽ chạy lại mỗi khi các giá trị này thay đổi
+  }, [query, selectedProvince, onSearch]);
   
   const handleSearchClick = () => {
     onSearch({ q: query, province: selectedProvince });
