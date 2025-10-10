@@ -3,6 +3,7 @@ import { SearchBar } from "./components/SearchBar";
 import { ResultsList } from "./components/ResultsList";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Toaster, toast } from "sonner";
+import { ThemeToggle } from "./components/ThemeToggle";
 
 function App() {
   const [results, setResults] = useState([]);
@@ -45,13 +46,16 @@ function App() {
 
   return (
     <>
-      <div className="bg-slate-50 min-h-screen">
+      <div className="bg-slate-50 dark:bg-slate-900 min-h-screen">
         <div className="container mx-auto p-4 md:p-8">
           <Card className="mb-8 shadow-md">
             <CardHeader>
-              <CardTitle className="text-center text-2xl md:text-4xl font-bold text-slate-800">
+              <div className="flex justify-between items-center">
+              <CardTitle className="text-center text-2xl md:text-4xl font-bold text-slate-800 dark:text-slate-200">
                 Tra cứu Phường/Xã sau Sáp nhập
               </CardTitle>
+              <ThemeToggle />
+              </div>
             </CardHeader>
             <CardContent>
               <p className="text-center text-slate-600 mb-6">
