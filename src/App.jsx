@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { SearchBar } from "./components/SearchBar";
 import { ResultsList } from "./components/ResultsList";
 import { InitialState } from "./components/InitialState";
@@ -11,33 +11,33 @@ import {
   PaginationItem,
   PaginationNext,
   PaginationPrevious,
-} from "@/components/ui/pagination"
+} from "@/components/ui/pagination";
 
 function App() {
   const [results, setResults] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [searchParams, setSearchParams] = useState({ q: "", province: ""});
+  const [searchParams, setSearchParams] = useState({ q: "", province: "" });
   const [hasSearched, setHasSearched] = useState(false);
-
   const [paginationData, setPaginationData] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
 
   const fetchData = useCallback(async (params, page) => {
-    // Không tìm kiếm nếu không có tham số
+    // Không tìm kiếm nếu không có bất kỳ tham số nào
     if (!params.q && !params.province) {
       setResults([]);
       setPaginationData(null);
-      return; 
+      // Giữ hasSearched=true nếu người dùng xóa hết chữ, để hiển thị "Không tìm thấy kết quả"
+      return;
     }
 
     setIsLoading(true);
     setHasSearched(true);
-    
+
     const urlParams = new URLSearchParams();
     if (params.q) urlParams.append('q', params.q);
     if (params.province) urlParams.append('Province', params.province);
     urlParams.append('page', page);
-    
+
     const url = `http://127.0.0.1:8000/api/communeHistory/?${urlParams.toString()}`;
 
     try {
@@ -48,7 +48,7 @@ function App() {
       setPaginationData({
         count: data.count,
         next: data.next,
-        previous: data.previous
+        previous: data.previous,
       });
       setCurrentPage(page);
     } catch (error) {
@@ -59,12 +59,11 @@ function App() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, []); // Mảng rỗng vì hàm chỉ dùng setter, vốn đã ổn định
 
-  // handleSearch giờ sẽ cập nhật tham số và gọi fetchData
   const handleSearch = useCallback((params) => {
     setSearchParams(params);
-    fetchData(params, 1); // Mỗi khi có tìm kiếm mới, luôn quay về trang 1
+    fetchData(params, 1); // Tìm kiếm mới luôn bắt đầu từ trang 1
   }, [fetchData]);
 
   const handleReset = useCallback(() => {
@@ -74,8 +73,7 @@ function App() {
     setHasSearched(false);
     setCurrentPage(1);
   }, []);
-  
-  // Hàm xử lý khi nhấn nút chuyển trang
+
   const handlePageChange = (newPage) => {
     if (newPage >= 1) {
       fetchData(searchParams, newPage);
@@ -87,8 +85,18 @@ function App() {
       <div className="bg-slate-50 dark:bg-slate-900 min-h-screen">
         <div className="container mx-auto p-4 md:p-8">
           <Card className="mb-8 shadow-md">
-            <CardHeader>{/* ... */}</CardHeader>
+            <CardHeader>
+              <div className="flex justify-between items-center gap-4">
+                <CardTitle className="text-2xl md:text-4xl font-bold text-slate-800 dark:text-slate-200">
+                  Tra cứu Phường/Xã sau Sáp nhập
+                </CardTitle>
+                <ThemeToggle />
+              </div>
+            </CardHeader>
             <CardContent>
+              <p className="text-center text-slate-600 dark:text-slate-400 mb-6">
+                Tìm kiếm thông tin đơn vị hành chính mới theo tên cũ.
+              </p>
               <SearchBar onSearch={handleSearch} onReset={handleReset} isLoading={isLoading} />
             </CardContent>
           </Card>
@@ -99,7 +107,7 @@ function App() {
                 {!isLoading && paginationData && (
                   <div className="mb-4 text-sm text-slate-700 dark:text-slate-400">
                     <p>
-                      Tìm thấy <strong>{paginationData.count}</strong> kết quả sáp nhập.
+                      Tìm thấy <strong>{paginationData.count}</strong> nhóm kết quả sáp nhập.
                     </p>
                   </div>
                 )}
@@ -108,7 +116,6 @@ function App() {
                   results={results}
                   query={searchParams.q}
                 />
-                {/* 5. Hiển thị component Pagination */}
                 {!isLoading && paginationData && (paginationData.next || paginationData.previous) && (
                   <Pagination className="mt-8">
                     <PaginationContent>
@@ -120,13 +127,13 @@ function App() {
                         />
                       </PaginationItem>
                       <PaginationItem>
-                        <span className="p-2 text-sm">Trang {currentPage}</span>
+                        <span className="p-2 font-medium text-sm">Trang {currentPage}</span>
                       </PaginationItem>
                       <PaginationItem>
                         <PaginationNext
                           href="#"
                           onClick={(e) => { e.preventDefault(); if (paginationData.next) handlePageChange(currentPage + 1); }}
-                           className={!paginationData.next ? "pointer-events-none opacity-50" : ""}
+                          className={!paginationData.next ? "pointer-events-none opacity-50" : ""}
                         />
                       </PaginationItem>
                     </PaginationContent>
