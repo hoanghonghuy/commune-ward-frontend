@@ -1,69 +1,88 @@
+import { useState } from "react";
 import { SearchBar } from "./components/SearchBar";
 import { ResultsList } from "./components/ResultsList";
-import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Toaster, toast } from "sonner";
 
 function App() {
-  const [ isLoading, setIsLoading ] = useState(false);
-  const [ results, setResults ] = useState([]);
-  const [ searchQuery, setSearchQuery ] = useState("");
-  const [ hasSearched, setHasSearched ] = useState(false);
+  const [results, setResults] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [hasSearched, setHasSearched] = useState(false);
 
-  const handleSearch = async ({ query, province}) => {
+  const handleSearch = async ({ q, province }) => {
     setIsLoading(true);
     setHasSearched(true);
-    setSearchQuery(query);
-    // url động
+    setSearchQuery(q);
+
     const params = new URLSearchParams();
-    if (query) 
-      params.append("query", query);
-    if (province)
-      params.append("Province", province);
+    if (q) params.append('q', q);
+    if (province) params.append('Province', province);
+    
     const url = `http://127.0.0.1:8000/api/communeHistory/?${params.toString()}`;
 
     try {
       const response = await fetch(url);
       if (!response.ok) {
-        throw new Error("Failed to fetch data");
+        throw new Error("API call failed");
       }
       const data = await response.json();
       setResults(data);
     } catch (error) {
-      console.error("Error fetching data:", error);
+      console.error("Failed to fetch search results:", error);
       setResults([]);
+      toast.error("Đã có lỗi xảy ra khi tải dữ liệu. Vui lòng thử lại.");
     } finally {
       setIsLoading(false);
     }
-  }
+  };
 
   const handleReset = () => {
     setResults([]);
     setSearchQuery("");
     setHasSearched(false);
-  }
+  };
 
   return (
-    <div className="bg-slate-50 min-h-screen">
-      <div className="container mx-auto p-4 md:p-8">
-        <header className="mb-8 text-center">
-        <h1 className="text-4xl font-bold text-slate-800">
-          Tra cứu Phường/Xã sau sáp nhập
-        </h1>
-        <p className="text-slate-600 mt-2">
-          Tìm kiếm thông tin đơn vị hành chính mới theo tên cũ.
-        </p>
-        </header>
+    <>
+      <div className="bg-slate-50 min-h-screen">
+        <div className="container mx-auto p-4 md:p-8">
+          <Card className="mb-8 shadow-md">
+            <CardHeader>
+              <CardTitle className="text-center text-2xl md:text-4xl font-bold text-slate-800">
+                Tra cứu Phường/Xã sau Sáp nhập
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-center text-slate-600 mb-6">
+                Tìm kiếm thông tin đơn vị hành chính mới theo tên cũ.
+              </p>
+              <SearchBar onSearch={handleSearch} onReset={handleReset} isLoading={isLoading} />
+            </CardContent>
+          </Card>
 
-        <main>
-          <SearchBar onSearch={handleSearch} onReset={handleReset} isLoading={isLoading}/>
-          <div className="mt-8">
-            {hasSearched && (
-              <ResultsList isLoading={isLoading} results={results} query={searchQuery}/>
+          <main>
+            {hasSearched && !isLoading && (
+              <div className="mb-4 text-sm text-slate-700">
+                <p>
+                  Hiển thị <strong>{results.length}</strong> kết quả.
+                </p>
+              </div>
             )}
-          </div>
-        </main>
+
+            {hasSearched && (
+              <ResultsList
+                isLoading={isLoading}
+                results={results}
+                query={searchQuery}
+              />
+            )}
+          </main>
+        </div>
       </div>
-    </div>
-  )
+      <Toaster position="top-right" richColors />
+    </>
+  );
 }
 
 export default App;

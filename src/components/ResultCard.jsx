@@ -1,42 +1,50 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { data } from "autoprefixer";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 const HighlightedText = ({ text = "", highlight = "" }) => {
-    if (!highlight.trim()) {
-        return <span>{text}</span>;
-    }
-    const regex = new RegExp(`(${highlight})`, "gi");
-    const parts = text.split(regex);
-    return (
-        <span>
-            {parts.map((part, index) => {
-                regex.test(part) ? (
-                    <mark key={index} className="bg-yellow-200 px-1 rounded">
-                        {part}
-                    </mark>
-                ) : (
-                    part
-                )
-            })}
-        </span>
-    );
+  if (!highlight || !highlight.trim()) {
+    return <span>{text}</span>;
+  }
+  const regex = new RegExp(`(${highlight})`, "gi");
+  const parts = text.split(regex);
+  return (
+    <span>
+      {parts.map((part, i) =>
+        regex.test(part) ? (
+          <mark key={i} className="bg-yellow-200 px-1 rounded-sm">
+            {part}
+          </mark>
+        ) : (
+          part
+        )
+      )}
+    </span>
+  );
 };
+
+
 export function ResultCard({ data, query }) {
-    return (
-        <Card>
-            <CardHeader>
-                <CardTitle text={data.commune_new} highlight={query}>{communeNew}</CardTitle>
-                <CardDescription>{data.province}</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <p>
-                    <span className="font-semibold">
-                        Sáp nhập từ: 
-                    </span>
-                    {" "}
-                    <HighlightedText text={data.merged_list.join(", ")} highlight={query}/>
-                </p>
-            </CardContent>
-        </Card>
-    )
+  return (
+    <Card className="shadow-sm hover:shadow-md transition-shadow">
+      <CardHeader>
+        <CardTitle>
+            <HighlightedText text={data.commune_new} highlight={query} />
+        </CardTitle>
+        <CardDescription>
+            <HighlightedText text={data.province} highlight={query} />
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <p>
+          <span className="font-semibold">Sáp nhập từ:</span>{" "}
+          <HighlightedText text={data.merged_list.join(", ")} highlight={query} />
+        </p>
+      </CardContent>
+    </Card>
+  );
 }
