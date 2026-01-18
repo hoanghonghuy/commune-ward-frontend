@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import {
   Card,
   CardContent,
@@ -17,25 +16,23 @@ const HighlightedText = ({ text = "", highlight = "" }) => {
     <span>
       {parts.map((part, i) =>
         regex.test(part) ? (
-          <mark key={i} className="bg-yellow-200 px-1 rounded-sm text-slate-800">
+          <mark
+            key={i}
+            className="bg-yellow-200 px-1 rounded-sm text-slate-800"
+          >
             {part}
           </mark>
         ) : (
           part
-        )
+        ),
       )}
     </span>
   );
 };
 
-const cardVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 },
-};
-
 export function ResultCard({ data, query }) {
   return (
-    <motion.div variants={cardVariants}>
+    <div>
       <Card className="shadow-sm hover:shadow-md transition-shadow">
         <CardHeader>
           <CardTitle>
@@ -48,10 +45,13 @@ export function ResultCard({ data, query }) {
         <CardContent>
           <p>
             <span className="font-semibold">Sáp nhập từ:</span>{" "}
-            <HighlightedText text={data.merged_list.join(", ")} highlight={query} />
+            <HighlightedText
+              text={data.merged_list.join(", ")}
+              highlight={query}
+            />
           </p>
         </CardContent>
       </Card>
-    </motion.div>
+    </div>
   );
 }

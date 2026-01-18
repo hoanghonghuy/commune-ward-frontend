@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { ResultCard } from "./ResultCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
@@ -15,16 +14,6 @@ const SkeletonCard = () => (
   </Card>
 );
 
-const listVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-    },
-  },
-};
-
 export function ResultsList({ isLoading, results, query }) {
   if (isLoading) {
     return (
@@ -38,22 +27,21 @@ export function ResultsList({ isLoading, results, query }) {
 
   if (results.length === 0) {
     return (
-        <div className="text-center py-10">
-            <p className="text-slate-600">Không tìm thấy kết quả phù hợp.</p>
-        </div>
+      <div className="text-center py-10">
+        <p className="text-slate-600">Không tìm thấy kết quả phù hợp.</p>
+      </div>
     );
   }
 
   return (
-    <motion.div
-      className="space-y-4"
-      variants={listVariants}
-      initial="hidden"
-      animate="visible"
-    >
-      {results.map((item, index) => (
-        <ResultCard key={index} data={item} query={query} />
+    <div className="space-y-4">
+      {results.map((item) => (
+        <ResultCard
+          key={`${item.commune_new}-${item.province}`}
+          data={item}
+          query={query}
+        />
       ))}
-    </motion.div>
+    </div>
   );
 }

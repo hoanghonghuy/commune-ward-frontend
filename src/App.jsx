@@ -5,7 +5,13 @@ import { InitialState } from "./components/InitialState";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Toaster } from "sonner";
 import { ThemeToggle } from "./components/ThemeToggle";
-import { Pagination, PaginationContent, PaginationItem, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 function App() {
   const {
@@ -37,9 +43,9 @@ function App() {
               <p className="text-center text-slate-600 dark:text-slate-400 mb-6">
                 Tìm kiếm thông tin đơn vị hành chính mới theo tên cũ.
               </p>
-              <SearchBar 
-                onSearch={handleSearch} 
-                onReset={handleReset} 
+              <SearchBar
+                onSearch={handleSearch}
+                onReset={handleReset}
                 isLoading={isLoading}
                 initialParams={searchParams}
               />
@@ -52,7 +58,8 @@ function App() {
                 {!isLoading && paginationData && (
                   <div className="mb-4 text-sm">
                     <p>
-                      Tìm thấy <strong>{paginationData.count}</strong> nhóm kết quả.
+                      Tìm thấy <strong>{paginationData.count}</strong> nhóm kết
+                      quả.
                     </p>
                   </div>
                 )}
@@ -61,29 +68,49 @@ function App() {
                   results={results}
                   query={searchParams.q}
                 />
-                {!isLoading && paginationData && (paginationData.next || paginationData.previous) && (
-                  <Pagination className="mt-8">
-                    <PaginationContent>
-                      <PaginationItem>
-                        <PaginationPrevious
-                          href="#"
-                          onClick={(e) => { e.preventDefault(); handlePageChange(currentPage - 1); }}
-                          className={!paginationData.previous ? "pointer-events-none opacity-50" : ""}
-                        />
-                      </PaginationItem>
-                      <PaginationItem>
-                        <span className="p-2 font-medium text-sm">Trang {currentPage}</span>
-                      </PaginationItem>
-                      <PaginationItem>
-                        <PaginationNext
-                          href="#"
-                          onClick={(e) => { e.preventDefault(); handlePageChange(currentPage + 1); }}
-                          className={!paginationData.next ? "pointer-events-none opacity-50" : ""}
-                        />
-                      </PaginationItem>
-                    </PaginationContent>
-                  </Pagination>
-                )}
+                {!isLoading &&
+                  paginationData &&
+                  (paginationData.next || paginationData.previous) && (
+                    <Pagination className="mt-8">
+                      <PaginationContent>
+                        <PaginationItem>
+                          <PaginationPrevious
+                            href="#"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handlePageChange(currentPage - 1);
+                            }}
+                            className={
+                              !paginationData.previous
+                                ? "pointer-events-none opacity-50"
+                                : ""
+                            }
+                          />
+                        </PaginationItem>
+                        <PaginationItem>
+                          <span className="p-2 font-medium text-sm">
+                            Trang {currentPage} /{" "}
+                            {Math.ceil(paginationData.count / 10) ||
+                              currentPage}
+                          </span>
+                        </PaginationItem>
+                        <PaginationItem>
+                          <PaginationNext
+                            href="#"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handlePageChange(currentPage + 1);
+                            }}
+                            className={
+                              !paginationData.next
+                                ? "pointer-events-none opacity-50"
+                                : ""
+                            }
+                          />
+                        </PaginationItem>
+                      </PaginationContent>
+                    </Pagination>
+                  )}
               </>
             ) : (
               <InitialState />
