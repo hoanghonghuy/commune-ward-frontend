@@ -2,6 +2,10 @@ import { useState, useEffect } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
+
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
 import {
   Select,
   SelectContent,
@@ -13,7 +17,9 @@ import { Search, RotateCcw } from "lucide-react";
 
 export function SearchBar({ onSearch, onReset, isLoading, initialParams }) {
   const [query, setQuery] = useState(initialParams.q || "");
-  const [selectedProvince, setSelectedProvince] = useState(initialParams.province || "");
+  const [selectedProvince, setSelectedProvince] = useState(
+    initialParams.province || "",
+  );
   const [provinces, setProvinces] = useState([]);
 
   const debouncedQuery = useDebounce(query, 500);
@@ -22,14 +28,15 @@ export function SearchBar({ onSearch, onReset, isLoading, initialParams }) {
   useEffect(() => {
     const fetchProvinces = async () => {
       try {
-        const response = await fetch("http://127.0.0.1:8000/api/provinces/");
+        const response = await fetch(`${API_BASE_URL}/api/provinces/`);
         if (!response.ok) {
-          throw new Error("Network response was not ok");
+          throw new Error(`HTTP Error: ${response.status}`);
         }
         const data = await response.json();
-        setProvinces(data);
+        setProvinces(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error("Failed to fetch provinces:", error);
+        toast.error("Không thể tải danh sách tỉnh thành. Vui lòng thử lại.");
       }
     };
     fetchProvinces();
@@ -37,7 +44,10 @@ export function SearchBar({ onSearch, onReset, isLoading, initialParams }) {
 
   useEffect(() => {
     // Chỉ gọi onSearch nếu các giá trị đã thay đổi so với giá trị ban đầu được lưu
-    if (debouncedQuery !== initialParams.q || debouncedProvince !== initialParams.province) {
+    if (
+      debouncedQuery !== initialParams.q ||
+      debouncedProvince !== initialParams.province
+    ) {
       onSearch({ q: debouncedQuery, province: debouncedProvince });
     }
   }, [debouncedQuery, debouncedProvince, onSearch, initialParams]);
@@ -52,7 +62,9 @@ export function SearchBar({ onSearch, onReset, isLoading, initialParams }) {
     <div className="flex w-full flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-2">
       <Select
         value={selectedProvince}
-        onValueChange={(value) => setSelectedProvince(value === "all" ? "" : value)}
+        onValueChange={(value) =>
+          setSelectedProvince(value === "all" ? "" : value)
+        }
       >
         <SelectTrigger className="w-full sm:w-[200px]">
           <SelectValue placeholder="Tất cả tỉnh" />
@@ -76,7 +88,12 @@ export function SearchBar({ onSearch, onReset, isLoading, initialParams }) {
           onChange={(e) => setQuery(e.target.value)}
         />
       </div>
-      <Button variant="outline" onClick={handleResetClick} disabled={isLoading} className="w-full sm:w-auto">
+      <Button
+        variant="outline"
+        onClick={handleResetClick}
+        disabled={isLoading}
+        className="w-full sm:w-auto"
+      >
         <RotateCcw className="mr-2 h-4 w-4" />
         Đặt lại
       </Button>

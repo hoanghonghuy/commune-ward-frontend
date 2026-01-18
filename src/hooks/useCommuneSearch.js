@@ -1,6 +1,11 @@
 import { useState, useCallback, useEffect } from "react";
 import { toast } from "sonner";
 
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
+const API_TIMEOUT = import.meta.env.VITE_API_TIMEOUT || 30000;
+const DEBUG_MODE = import.meta.env.VITE_ENABLE_DEBUG === "true";
+
 export function useCommuneSearch() {
   const [results, setResults] = useState(() => {
     const savedResults = localStorage.getItem("results");
@@ -32,7 +37,15 @@ export function useCommuneSearch() {
       localStorage.setItem("currentPage", JSON.stringify(currentPage));
       localStorage.setItem("hasSearched", JSON.stringify(true));
     } else {
-      localStorage.clear();
+      // Remove only search-related keys, not theme preference
+      const keysToRemove = [
+        "results",
+        "searchParams",
+        "paginationData",
+        "currentPage",
+        "hasSearched",
+      ];
+      keysToRemove.forEach((key) => localStorage.removeItem(key));
     }
   }, [results, searchParams, paginationData, currentPage, hasSearched]);
 
@@ -46,30 +59,72 @@ export function useCommuneSearch() {
     setHasSearched(true);
 
     const urlParams = new URLSearchParams();
-    if (params.q) urlParams.append('q', params.q);
-    if (params.province) urlParams.append('Province', params.province);
-    urlParams.append('page', page);
-    
-    const url = `http://127.0.0.1:8000/api/communeHistory/?${urlParams.toString()}`;
+    if (params.q) urlParams.append("q", params.q);
+    if (params.province) urlParams.append("Province", params.province);
+    urlParams.append("page", page);
+
+    const url = `${API_BASE_URL}/api/communeHistory/?${urlParams.toString()}`;
 
     try {
-      const response = await fetch(url);
-      if (!response.ok) throw new Error("API call failed");
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT);
+
+      const response = await fetch(url, {
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.detail ||
+            errorData.message ||
+            `HTTP Error: ${response.status}`,
+        );
+      }
+
       const data = await response.json();
-      setResults(data.results);
-      setPaginationData({ count: data.count, next: data.next, previous: data.previous });
+
+      if (DEBUG_MODE) {
+        console.log("API Response:", data);
+      }
+
+      setResults(data.results || []);
+      setPaginationData({
+        count: data.count || 0,
+        next: data.next || null,
+        previous: data.previous || null,
+      });
       setCurrentPage(page);
     } catch (error) {
-      toast.error("Đã có lỗi xảy ra khi tải dữ liệu.");
+      if (error.name === "AbortError") {
+        toast.error("Không thể kết nối với máy chủ. Vui lòng thử lại.");
+        console.error("API timeout:", error);
+      } else if (
+        error.message.includes("Failed to fetch") ||
+        error.message.includes("NetworkError")
+      ) {
+        toast.error(
+          "Không thể kết nối với máy chủ. Vui lòng kiểm tra kết nối mạng.",
+        );
+        console.error("Network error:", error);
+      } else {
+        toast.error(error.message || "Đã có lỗi xảy ra khi tải dữ liệu.");
+        console.error("API error:", error);
+      }
     } finally {
       setIsLoading(false);
     }
   }, []);
 
-  const handleSearch = useCallback((params) => {
-    setSearchParams(params);
-    fetchData(params, 1);
-  }, [fetchData]);
+  const handleSearch = useCallback(
+    (params) => {
+      setSearchParams(params);
+      fetchData(params, 1);
+    },
+    [fetchData],
+  );
 
   const handleReset = useCallback(() => {
     setResults([]);
@@ -79,11 +134,14 @@ export function useCommuneSearch() {
     setCurrentPage(1);
   }, []);
 
-  const handlePageChange = useCallback((newPage) => {
-    if (newPage >= 1) {
-      fetchData(searchParams, newPage);
-    }
-  }, [searchParams, fetchData]);
+  const handlePageChange = useCallback(
+    (newPage) => {
+      if (newPage >= 1) {
+        fetchData(searchParams, newPage);
+      }
+    },
+    [searchParams, fetchData],
+  );
 
   return {
     results,
